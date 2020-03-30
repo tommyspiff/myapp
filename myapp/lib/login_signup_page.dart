@@ -1,20 +1,18 @@
 import 'dart:ui';
-
-import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
 import 'package:myapp/authentication.dart';
 
-class LoginSignUpPage extends StatefulWidget {
-  LoginSignUpPage({this.auth, this.loginCallback});
+class LoginSignupPage extends StatefulWidget {
+  LoginSignupPage({this.auth, this.loginCallback});
 
   final BaseAuth auth;
   final VoidCallback loginCallback;
 
   @override
-  State<StatefulWidget> createState() => new _LoginSignUpPageState();
+  State<StatefulWidget> createState() => new _LoginSignupPageState();
 }
 
-class _LoginSignUpPageState extends State<LoginSignUpPage> {
+class _LoginSignupPageState extends State<LoginSignupPage> {
   final _formKey = new GlobalKey<FormState>();
 
   String _email;
