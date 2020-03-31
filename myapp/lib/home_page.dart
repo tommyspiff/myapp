@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:myapp/authentication.dart';
-import 'package:firebase_database/firebase_database.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:myapp/todo.dart';
 import 'dart:async';
 
@@ -19,14 +19,14 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   List<Todo> _todoList;
 
-  final FirebaseDatabase _database = FirebaseDatabase.instance;
+  final databaseReference = Firestore.instance;
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
-  final _textEditingController = TextEditingController();
-  StreamSubscription<Event> _onTodoAddedSubscription;
-  StreamSubscription<Event> _onTodoChangedSubscription;
+  
+  // StreamSubscription<Event> _onTodoAddedSubscription;
+  // StreamSubscription<Event> _onTodoChangedSubscription;
 
-  Query _todoQuery;
+  // Query _todoQuery;
 
   //bool _isEmailVerified = false;
 
@@ -35,16 +35,15 @@ class _HomePageState extends State<HomePage> {
     super.initState();
 
     //_checkEmailVerification();
-
     _todoList = new List();
-    _todoQuery = _database
-        .reference()
-        .child("todo")
-        .orderByChild("userId")
-        .equalTo(widget.userId);
-    _onTodoAddedSubscription = _todoQuery.onChildAdded.listen(onEntryAdded);
-    _onTodoChangedSubscription =
-        _todoQuery.onChildChanged.listen(onEntryChanged);
+    // _todoQuery = _database
+    //     .reference()
+    //     .child("todo")
+    //     .orderByChild("userId")
+    //     .equalTo(widget.userId);
+    // _onTodoAddedSubscription = _todoQuery.onChildAdded.listen(onEntryAdded);
+    // _onTodoChangedSubscription =
+    //     _todoQuery.onChildChanged.listen(onEntryChanged);
   }
 
 //  void _checkEmailVerification() async {
@@ -110,27 +109,27 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
-    _onTodoAddedSubscription.cancel();
-    _onTodoChangedSubscription.cancel();
+    // _onTodoAddedSubscription.cancel();
+    // _onTodoChangedSubscription.cancel();
     super.dispose();
   }
 
-  onEntryChanged(Event event) {
-    var oldEntry = _todoList.singleWhere((entry) {
-      return entry.key == event.snapshot.key;
-    });
+  // onEntryChanged(Event event) {
+  //   var oldEntry = _todoList.singleWhere((entry) {
+  //     return entry.key == event.snapshot.key;
+  //   });
 
-    setState(() {
-      _todoList[_todoList.indexOf(oldEntry)] =
-          Todo.fromSnapshot(event.snapshot);
-    });
-  }
+  //   setState(() {
+  //     _todoList[_todoList.indexOf(oldEntry)] =
+  //         Todo.fromSnapshot(event.snapshot);
+  //   });
+  // }
 
-  onEntryAdded(Event event) {
-    setState(() {
-      _todoList.add(Todo.fromSnapshot(event.snapshot));
-    });
-  }
+  // onEntryAdded(Event event) {
+  //   setState(() {
+  //     _todoList.add(Todo.fromSnapshot(event.snapshot));
+  //   });
+  // }
 
   signOut() async {
     try {
@@ -141,63 +140,30 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  addNewTodo(String todoItem) {
-    if (todoItem.length > 0) {
-      Todo todo = new Todo(todoItem.toString(), widget.userId, false);
-      _database.reference().child("todo").push().set(todo.toJson());
-    }
-  }
-
   updateTodo(Todo todo) {
     //Toggle completed
     todo.completed = !todo.completed;
     if (todo != null) {
-      _database.reference().child("todo").child(todo.key).set(todo.toJson());
+      // _database.reference().child("todo").child(todo.key).set(todo.toJson());
     }
   }
 
   deleteTodo(String todoId, int index) {
-    _database.reference().child("todo").child(todoId).remove().then((_) {
-      print("Delete $todoId successful");
-      setState(() {
-        _todoList.removeAt(index);
-      });
-    });
+    // _database.reference().child("todo").child(todoId).remove().then((_) {
+    //   print("Delete $todoId successful");
+    //   setState(() {
+    //     _todoList.removeAt(index);
+    //   });
+    // });
   }
 
-  showAddTodoDialog(BuildContext context) async {
-    _textEditingController.clear();
+  showAddTodoDialog(BuildContext context) async {    
     await showDialog<String>(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            content: new Row(
-              children: <Widget>[
-                new Expanded(
-                    child: new TextField(
-                      controller: _textEditingController,
-                      autofocus: true,
-                      decoration: new InputDecoration(
-                        labelText: 'Add new todo',
-                      ),
-                    ))
-              ],
-            ),
-            actions: <Widget>[
-              new FlatButton(
-                  child: const Text('Cancel'),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  }),
-              new FlatButton(
-                  child: const Text('Save'),
-                  onPressed: () {
-                    addNewTodo(_textEditingController.text.toString());
-                    Navigator.pop(context);
-                  })
-            ],
-          );
-        });
+      barrierDismissible: true,
+      context: context,
+      builder: (BuildContext context) {
+        return ToDoDialog(widget.userId);
+      });
   }
 
   Widget showTodoList() {
@@ -266,4 +232,72 @@ class _HomePageState extends State<HomePage> {
           child: Icon(Icons.add),
         ));
   }
+}
+
+class ToDoDialog extends StatefulWidget {
+  ToDoDialog(this.userId);
+
+  final String userId;
+
+  @override
+  _ToDoDialogState createState() => new _ToDoDialogState();
+}
+
+class _ToDoDialogState extends State<ToDoDialog> {
+  final _textEditingController = TextEditingController();
+  DateTime _dateTime;
+
+  final databaseReference = Firestore.instance;
+
+  @override
+  Widget build(BuildContext context) {
+    return SimpleDialog(
+      contentPadding: EdgeInsets.all(16.0),
+      children: <Widget>[
+        new Expanded(
+            child: new TextField(
+              controller: _textEditingController,
+              autofocus: true,
+              decoration: new InputDecoration(
+                labelText: 'Add new todo',
+              ),
+            )),
+        new FlatButton(
+          child: Text(_dateTime == null ? 'Pick a date' : _dateTime.toString()),
+          onPressed: () {
+            showDatePicker(
+              context: context,
+              initialDate: DateTime.now(),
+              firstDate: DateTime.now(),
+              lastDate: DateTime(2222))
+              .then((date) {
+                _dateTime = date;
+              });
+          }),
+        new Row(
+          children: <Widget>[
+            new FlatButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.pop(context);
+              }),
+            new FlatButton(
+              child: const Text('Save'),
+              onPressed: () {
+                addNewTodo(_textEditingController.text.toString(), _dateTime);
+                Navigator.pop(context);
+              })
+        ],)
+      ],
+    );
+  }
+
+  addNewTodo(String todoName, DateTime datetime) {
+    if (todoName.length > 0) {
+      Todo todo = new Todo(todoName.toString(), widget.userId, false, datetime);
+      databaseReference.collection(widget.userId).document()
+        .setData(todo.toJson());
+    }
+  }
+
 }

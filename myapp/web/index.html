@@ -22,8 +22,9 @@
 <!-- TODO: Add SDKs for Firebase products that you want to use
      https://firebase.google.com/docs/web/setup#available-libraries -->
 <script src="https://www.gstatic.com/firebasejs/7.13.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/7.13.1/firebase-analytics.js"></script>
+<!-- <script src="https://www.gstatic.com/firebasejs/7.13.1/firebase-analytics.js"></script> -->
 <script src="https://www.gstatic.com/firebasejs/7.13.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.13.1/firebase-firestore.js"></script>
 
   <!-- This script installs service_worker.js to provide PWA functionality to
        application. For more information, see:
@@ -34,6 +35,22 @@
         navigator.serviceWorker.register('flutter_service_worker.js');
       });
     }
+  </script>
+  <script>
+    // TODO: Replace the following with your app's Firebase project configuration.
+    // See: https://support.google.com/firebase/answer/7015592
+    var firebaseConfig = {
+      apiKey: "AIzaSyAs8g54TwSqnYdP9nAhS0OQ9y-x_bAr7TY",
+      authDomain: "myapp-e34fc.firebaseapp.com",
+      databaseURL: "https://myapp-e34fc.firebaseio.com",
+      projectId: "myapp-e34fc",
+      storageBucket: "myapp-e34fc.appspot.com",
+      messagingSenderId: "622875596206",
+      appId: "1:622875596206:web:3d30d0a0ce3ed08395e43f",
+      measurementId: "G-RCXTVH24K7"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
   </script>
   <script src="main.dart.js" type="application/javascript"></script>
 </body>
