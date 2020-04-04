@@ -24,40 +24,22 @@ class _HomePageState extends State<HomePage> {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   StreamSubscription<fs.QuerySnapshot> _onTodoAddedSubscription;
-  StreamSubscription<fs.QuerySnapshot> _onTodoChangedSubscription;
 
   Stream<fs.QuerySnapshot> _todoQuery;
-
-  //bool _isEmailVerified = false;
 
   @override
   void initState() {
     super.initState();
 
-    //_checkEmailVerification();
     _todoQuery = databaseReference.collection(widget.userId).snapshots();
     _onTodoAddedSubscription = _todoQuery.listen(onEntryAdded);
-    // _onTodoChangedSubscription =
-    //     _todoQuery.onChildChanged.listen(onEntryChanged);
   }
 
   @override
   void dispose() {
     _onTodoAddedSubscription.cancel();
-    // _onTodoChangedSubscription.cancel();
     super.dispose();
   }
-
-  // onEntryChanged(Event event) {
-  //   var oldEntry = _todoList.singleWhere((entry) {
-  //     return entry.key == event.snapshot.key;
-  //   });
-
-  //   setState(() {
-  //     _todoList[_todoList.indexOf(oldEntry)] =
-  //         Todo.fromSnapshot(event.snapshot);
-  //   });
-  // }
 
   onEntryAdded(fs.QuerySnapshot event) {
     setState(() {
@@ -75,14 +57,6 @@ class _HomePageState extends State<HomePage> {
       widget.logoutCallback();
     } catch (e) {
       print(e);
-    }
-  }
-
-  updateTodo(Todo todo) {
-    //Toggle completed
-    todo.completed = !todo.completed;
-    if (todo != null) {
-      // _database.reference().child("todo").child(todo.key).set(todo.toJson());
     }
   }
 
@@ -108,10 +82,10 @@ class _HomePageState extends State<HomePage> {
     final today = DateTime(now.year, now.month, now.day);
     final yesterday = DateTime(now.year, now.month, now.day - 1);
 
-    if (date == today) {
+    if (today.compareTo(date) == 0) {
       return Colors.orange.withOpacity(1.0);
     } else {
-      if (date == yesterday) {
+      if (yesterday.isAfter(date)) {
         return Colors.red.withOpacity(1.0);
       }
     }
@@ -152,7 +126,7 @@ class _HomePageState extends State<HomePage> {
                           )
                         : Icon(Icons.done, color: Colors.grey, size: 20.0),
                     onPressed: () {
-                      updateTodo(_todoList[index]);
+                      deleteTodo(_todoList[index], index);
                     }),
               ),
             );
@@ -171,7 +145,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return new Scaffold(
         appBar: new AppBar(
-          title: new Text('Flutter login demo'),
+          title: new Text('todoApp'),
           actions: <Widget>[
             new FlatButton(
                 child: new Text('Logout',
@@ -202,6 +176,7 @@ class ToDoDialog extends StatefulWidget {
 class _ToDoDialogState extends State<ToDoDialog> {
   final _textEditingController = TextEditingController();
   DateTime _dateTime;
+  Text _dateText = new Text('Pick a date');
 
   final databaseReference = fs.Firestore.instance;
 
@@ -220,15 +195,15 @@ class _ToDoDialogState extends State<ToDoDialog> {
         )),
         new FlatButton(
             child:
-                Text(_dateTime == null ? 'Pick a date' : _dateTime.toString()),
+                _dateText,
             onPressed: () {
               showDatePicker(
-                      context: context,
-                      initialDate: DateTime.now(),
-                      firstDate: DateTime.now(),
-                      lastDate: DateTime(2222))
-                  .then((date) {
-                _dateTime = date;
+                  context: context,
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime(DateTime.now().year),
+                  lastDate: DateTime(2222))
+              .then((date) {
+                updateValues(date);
               });
             }),
         new Row(
@@ -247,6 +222,13 @@ class _ToDoDialogState extends State<ToDoDialog> {
         )
       ],
     );
+  }
+
+  updateValues(DateTime date) {
+    setState(() {
+      _dateTime = date;
+      _dateText = new Text(new DateFormat('dd-MM-yyyy').format(_dateTime));
+    });
   }
 
   addNewTodo(String todoName, DateTime datetime) {
